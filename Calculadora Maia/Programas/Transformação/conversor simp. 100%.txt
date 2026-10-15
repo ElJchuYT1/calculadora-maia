@@ -1,0 +1,80 @@
+#include <stdio.h>
+
+const char* haab[] = {"Pop","Wo","Sip","Sotz'","Sek","Xul","Yaxk'in","Mol","Ch'en","Yax","Sak","Keh","Mak","K'ank'in","Muwan","Pax","K'ayab","Kumk'u","Wayeb"};
+const char* tzolkin[] = {"Imix","Ik","Akbal","Kan","Chicchan","Cimi","Manik","Lamat","Muluc","Oc","Chuen","Eb","Ben","Ix","Men","Cib","Caban","Etznab","Cauac","Ahau"};
+
+#define GMT_CORRELATION 584283L
+
+// Conversão usando apenas matemática inteira (sem floats)
+long gregorian_to_julian(int d, int m, int y) {
+    if (m <= 2) { y--; m += 12; }
+    long a = y / 100;
+    long b = a / 4;
+    return (2 - a + b) + d + (1461L * (y + 4716) / 4) + (306001L * (m + 1) / 10000) - 1524;
+}
+
+void julian_to_gregorian(long jd, int *d, int *m, int *y) {
+    long l = jd + 68569, n = (4 * l) / 146097;
+    l -= (146097 * n + 3) / 4;
+    long i = (4000 * (l + 1)) / 1461001;
+    l = l - (1461 * i) / 4 + 31;
+    long j = (80 * l) / 2447;
+    *d = l - (2447 * j) / 80;
+    *m = j + 2 - (12 * (j / 11));
+    *y = 100 * (n - 49) + i + (j / 11);
+}
+
+// Função única para imprimir os resultados e evitar repetição de código
+void print_maya_info(long jd, long maya_days) {
+    int h_days = (maya_days + 348) % 365;
+    int t_days = (maya_days + 159) % 260;
+
+    printf("\n[Resultado]\n");
+    printf("Dia Juliano (JD): %ld\nTotal de Dias Maya: %ld\n", jd, maya_days);
+    printf("Cuenta Larga: %ld.%ld.%ld.%ld.%ld\n", 
+            maya_days / 144000L, (maya_days % 144000L) / 7200L, 
+            (maya_days % 7200L) / 360L, (maya_days % 360L) / 20L, maya_days % 20L);
+    printf("Dia Haab: %03d | Haab: %d %s\n", h_days, h_days % 20, haab[h_days / 20]);
+    printf("Dia Tzolkin: %03d | Tzolk'in: %d %s\n", t_days + 1, (t_days % 13) + 1, tzolkin[t_days % 20]);
+}
+
+void convertir_gregorian_a_maya() {
+    int d, m, y;
+    printf("\n--- Gregoriano a Cuenta Larga Maya ---\nIngrese fecha (Dia Mes Ano): ");
+    if (scanf("%d %d %d", &d, &m, &y) != 3) return;
+
+    long jd = gregorian_to_julian(d, m, y);
+    long maya_days = jd - GMT_CORRELATION;
+
+    if (maya_days < 0) {
+        printf("Error: Fecha anterior a la creacion Maya (11/08/-3114).\n");
+        return;
+    }
+    print_maya_info(jd, maya_days);
+}
+
+void convertir_maya_a_gregorian() {
+    long b, k, t, u, kin;
+    int d, m, y;
+    printf("\n--- Cuenta Larga Maya a Gregoriano ---\nIngrese fecha (Baktun Katun Tun Uinal Kin): ");
+    if (scanf("%ld %ld %ld %ld %ld", &b, &k, &t, &u, &kin) != 5) return;
+
+    long maya_days = (b * 144000L) + (k * 7200L) + (t * 360L) + (u * 20L) + kin;
+    long jd = maya_days + GMT_CORRELATION;
+    
+    julian_to_gregorian(jd, &d, &m, &y);
+    printf("\nFecha Gregoriana: %02d/%02d/%d", d, m, y);
+    print_maya_info(jd, maya_days);
+}
+
+int main() {
+    int opcion;
+    printf("===========================================\n   SISTEMA DE CONVERSION CALENDARICA\n===========================================\n");
+    printf("1. Gregoriano -> Maya\n2. Maya -> Gregoriano\nSeleccione (1 o 2): ");
+    if (scanf("%d", &opcion) == 1) {
+        if (opcion == 1) convertir_gregorian_a_maya();
+        else if (opcion == 2) convertir_maya_a_gregorian();
+        else printf("Opcion no valida.\n");
+    }
+    return 0;
+}

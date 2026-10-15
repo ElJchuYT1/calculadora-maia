@@ -1,0 +1,315 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <U8x8lib.h> 
+#include <avr/pgmspace.h>
+#include <Keypad.h>
+
+/* Configuração do Display OLED SH1109 (128x64) I2C */
+U8X8_SSD1309_128X64_NONAME0_HW_I2C display(/* reset=*/ U8X8_PIN_NONE);
+
+/* Configuração do Teclado 4x4 */
+char letras[4][4] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
+byte pinoLinhas[4] = {9, 8, 7, 6}; 
+byte pinoColunas[4] = {5, 4, 3, 2}; 
+
+Keypad teclado = Keypad(makeKeymap(letras), pinoLinhas, pinoColunas, 4, 4);
+
+/* Variável Global para o Sleep do Sistema */
+bool modoEconomia = false;
+
+/* Parâmetros Maia */
+#define GMT_CORRELATION 584283L
+
+const char h0[] PROGMEM = "Pop";     const char h10[] PROGMEM = "Sak";
+const char h1[] PROGMEM = "Wo";      const char h11[] PROGMEM = "Keh";
+const char h2[] PROGMEM = "Sip";     const char h12[] PROGMEM = "Mak";
+const char h3[] PROGMEM = "Sotz'";   const char h13[] PROGMEM = "K'ank'in";
+const char h4[] PROGMEM = "Sek";     const char h14[] PROGMEM = "Muwan";
+const char h5[] PROGMEM = "Xul";     const char h15[] PROGMEM = "Pax";
+const char h6[] PROGMEM = "Yaxk'in"; const char h16[] PROGMEM = "K'ayab";
+const char h7[] PROGMEM = "Mol";     const char h17[] PROGMEM = "Kumk'u";
+const char h8[] PROGMEM = "Ch'en";   const char h18[] PROGMEM = "Wayeb";
+const char h9[] PROGMEM = "Yax";
+
+const char* const haab[] PROGMEM = {h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14,h15,h16,h17,h18};
+
+const char t0[] PROGMEM = "Imix";      const char t10[] PROGMEM = "Chuen";
+const char t1[] PROGMEM = "Ik";        const char t11[] PROGMEM = "Eb";
+const char t2[] PROGMEM = "Akbal";     const char t12[] PROGMEM = "Ben";
+const char t3[] PROGMEM = "Kan";       const char t13[] PROGMEM = "Ix";
+const char t4[] PROGMEM = "Chicchan";  const char t14[] PROGMEM = "Men";
+const char t5[] PROGMEM = "Cimi";      const char t15[] PROGMEM = "Cib";
+const char t6[] PROGMEM = "Manik";     const char t16[] PROGMEM = "Caban";
+const char t7[] PROGMEM = "Lamat";     const char t17[] PROGMEM = "Etznab";
+const char t8[] PROGMEM = "Muluc";     const char t18[] PROGMEM = "Cauac";
+const char t9[] PROGMEM = "Oc";        const char t19[] PROGMEM = "Ahau";
+
+const char* const tzolkin[] PROGMEM = {t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19};
+
+/* Cálculos de Data */
+long gregorian_to_julian(int d, int m, int y) {
+    if (m <= 2) { y--; m += 12; }
+    long a = y / 100;
+    long b = a / 4;
+    return (2 - a + b) + d + (1461L * (y + 4716) / 4) + (306001L * (m + 1) / 10000) - 1524;
+}
+
+void julian_to_gregorian(long jd, int *d, int *m, int *y) {
+    long l = jd + 68569, n = (4 * l) / 146097;
+    l -= (146097 * n + 3) / 4;
+    long i = (4000 * (l + 1)) / 1461001;
+    l = l - (1461 * i) / 4 + 31;
+    long j = (80 * l) / 2447;
+    *d = l - (2447 * j) / 80;
+    *m = j + 2 - (12 * (j / 11));
+    *y = 100 * (n - 49) + i + (j / 11);
+}
+
+/* Função central: Lê uma string completa da tela, permitindo apagar (C) */
+String lerEntradaCompleta(const __FlashStringHelper* instrucao1, const __FlashStringHelper* instrucao2) {
+    String entrada = "";
+    display.clear();
+    display.setCursor(0, 0); display.print(instrucao1);
+    display.setCursor(0, 1); display.print(instrucao2);
+    
+    display.setCursor(0, 4);
+    display.print(F("_")); // Mostra cursor
+
+    while (true) {
+        char tecla = teclado.getKey();
+        if (tecla) {
+            if (tecla == 'A') { // Dormir
+                modoEconomia = true;
+                display.clear();
+                display.setPowerSave(1);
+                return "";
+            }
+            
+            if (tecla >= '0' && tecla <= '9') {
+                if (entrada.length() < 15) entrada += tecla; // Limite da largura da tela (16)
+            } 
+            else if (tecla == '#') {
+                if (entrada.length() < 15) entrada += '#'; // Separador Gregoriano
+            } 
+            else if (tecla == '*') {
+                if (entrada.length() < 15) entrada += '.'; // Separador Maia (ponto visual)
+            } 
+            else if (tecla == 'C') {
+                if (entrada.length() > 0) {
+                    entrada.remove(entrada.length() - 1); // Apaga último char
+                } else {
+                    return ""; // C com linha vazia = Cancela e Volta pro Menu
+                }
+            } 
+            else if (tecla == 'D') {
+                if (entrada.length() > 0) return entrada; // Confirma entrada
+            }
+
+            // Atualiza o display: Apaga a linha 4 e reescreve
+            display.setCursor(0, 4);
+            display.print(F("                ")); // 16 espaços
+            display.setCursor(0, 4);
+            
+            if (entrada.length() == 0) {
+                display.print(F("_"));
+            } else {
+                display.print(entrada);
+            }
+        }
+    }
+}
+
+/* Imprimir Informações Maias e os Seriais Específicos */
+void print_maya_info(long jd, long maya_days) {
+    int h_days = (maya_days + 348) % 365;
+    int t_days = (maya_days + 159) % 260;
+
+    // IMPRESSÃO NO MONITOR SERIAL APENAS DO SOLICITADO
+    Serial.print(F("JD: ")); Serial.println(jd);
+    Serial.print(F("Dias Haab: ")); Serial.println(h_days);
+    Serial.print(F("Dias Tzolkin: ")); Serial.println(t_days);
+    Serial.println(F("-------------"));
+
+    long baktun = maya_days / 144000L;
+    long katun = (maya_days % 144000L) / 7200L;
+    long tun = (maya_days % 7200L) / 360L;
+    long uinal = (maya_days % 360L) / 20L;
+    long kin = maya_days % 20L;
+
+    char buffer_haab[15];
+    char buffer_tzolkin[15];
+    strcpy_P(buffer_haab, (char*)pgm_read_ptr(&(haab[h_days / 20])));
+    strcpy_P(buffer_tzolkin, (char*)pgm_read_ptr(&(tzolkin[t_days % 20])));
+
+    display.clear(); 
+    
+    // Conta Longa
+    display.setCursor(0, 0);
+    display.print(baktun); display.print("."); display.print(katun); display.print(".");
+    display.print(tun); display.print("."); display.print(uinal); display.print("."); display.print(kin);
+
+    // Haab
+    display.setCursor(0, 2);
+    display.print(F("Haab: ")); display.print(h_days % 20); 
+    display.setCursor(0, 3);
+    display.print(buffer_haab);
+
+    // Tzolkin
+    display.setCursor(0, 5);
+    display.print(F("Tzolkin: ")); display.print((t_days % 13) + 1);
+    display.setCursor(0, 6);
+    display.print(buffer_tzolkin);
+}
+
+/* Pausa a tela até o usuário apertar C para voltar ou A para dormir */
+void esperarTecla() {
+    display.setCursor(0, 7);
+    display.print(F("Aperte 'C'"));
+    while(true) {
+        char t = teclado.getKey();
+        if (t == 'C' || t == 'D') break;
+        if (t == 'A') {
+            modoEconomia = true;
+            display.clear();
+            display.setPowerSave(1);
+            break;
+        }
+    }
+}
+
+/* Opções de Conversão */
+void converter_gregorian_a_maya() {
+    String input = lerEntradaCompleta(F("Data Normal"), F("DD#MM#AAAA"));
+    if (input == "") return; // Foi cancelado ou colocado pra dormir
+    
+    // Procura os separadores '#'
+    int primeiroHash = input.indexOf('#');
+    int segundoHash = input.indexOf('#', primeiroHash + 1);
+    
+    if (primeiroHash == -1 || segundoHash == -1) {
+        display.clear(); display.setCursor(0,3); display.print(F("Erro Formato"));
+        esperarTecla();
+        return;
+    }
+
+    // Separa a String nos inteiros D, M, Y
+    int d = input.substring(0, primeiroHash).toInt();
+    int m = input.substring(primeiroHash + 1, segundoHash).toInt();
+    int y = input.substring(segundoHash + 1).toInt();
+
+    long jd = gregorian_to_julian(d, m, y);
+    long maya_days = jd - GMT_CORRELATION;
+
+    if (maya_days < 0) {
+        display.clear();
+        display.setCursor(0,3);
+        display.print(F("Pre-criacao!"));
+        esperarTecla();
+        return;
+    }
+    
+    print_maya_info(jd, maya_days);
+    esperarTecla();
+}
+
+void converter_maya_a_gregorian() {
+    String input = lerEntradaCompleta(F("Conta Longa"), F("B*K*T*U*K"));
+    if (input == "") return; // Foi cancelado ou colocado pra dormir
+    
+    // Procura os separadores '.'
+    int p1 = input.indexOf('.');
+    int p2 = input.indexOf('.', p1 + 1);
+    int p3 = input.indexOf('.', p2 + 1);
+    int p4 = input.indexOf('.', p3 + 1);
+
+    if (p1 == -1 || p2 == -1 || p3 == -1 || p4 == -1) {
+        display.clear(); display.setCursor(0,3); display.print(F("Erro Formato"));
+        esperarTecla();
+        return;
+    }
+
+    // Separa a String
+    long b = input.substring(0, p1).toInt();
+    long k = input.substring(p1 + 1, p2).toInt();
+    long t = input.substring(p2 + 1, p3).toInt();
+    long u = input.substring(p3 + 1, p4).toInt();
+    long kin = input.substring(p4 + 1).toInt();
+
+    long maya_days = (b * 144000L) + (k * 7200L) + (t * 360L) + (u * 20L) + kin;
+    long jd = maya_days + GMT_CORRELATION;
+    
+    int d, m, y;
+    julian_to_gregorian(jd, &d, &m, &y);
+    
+    print_maya_info(jd, maya_days);
+    
+    // Sobrescreve a última linha para mostrar a data Gregoriana
+    display.setCursor(0, 7); 
+    display.print(d); display.print(F("/")); display.print(m); display.print(F("/")); display.print(y);
+    
+    // Loop de espera nativo para não chamar o 'esperarTecla' e apagar a data
+    while(true) {
+        char tecla = teclado.getKey();
+        if (tecla == 'C' || tecla == 'D') break;
+        if (tecla == 'A') {
+            modoEconomia = true;
+            display.clear();
+            display.setPowerSave(1);
+            break;
+        }
+    }
+}
+
+/* Tela Inicial Menu */
+void begintela(){
+  display.clear();
+  display.setFont(u8x8_font_pressstart2p_r); 
+  
+  display.setCursor(0, 0); display.print(F("Calc Maia"));
+  display.setCursor(0, 3); display.print(F("1.Greg>Maia"));
+  display.setCursor(0, 5); display.print(F("2.Maia>Greg"));
+}
+
+void setup() {
+  Serial.begin(9600); // Mantido apenas para as requisições de JD/Haab/Tzolkin
+  
+  display.begin();
+  display.setPowerSave(0); 
+  begintela();
+}
+
+void loop() {
+  // Se estiver no modo economia, não roda o código normal. Fica apenas aguardando qualquer tecla.
+  if (modoEconomia) {
+      char t = teclado.getKey();
+      if (t) {
+          modoEconomia = false;
+          display.setPowerSave(0); // Acorda a tela
+          begintela();
+      }
+      return; // Trava o loop aqui até acordar
+  }
+
+  // Comportamento Normal com tela ligada
+  char tecla = teclado.getKey();
+  
+  if (tecla == 'A') {
+      modoEconomia = true;
+      display.clear(); // Apaga as informações para não dar "ghosting"
+      display.setPowerSave(1); // Desliga a energia da tela
+  }
+  else if (tecla == '1') {
+      converter_gregorian_a_maya();
+      if (!modoEconomia) begintela(); // Só desenha o menu de novo se não apertou A no meio
+  } 
+  else if (tecla == '2') {
+      converter_maya_a_gregorian();
+      if (!modoEconomia) begintela(); 
+  }
+}

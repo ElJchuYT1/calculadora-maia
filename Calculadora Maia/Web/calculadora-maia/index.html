@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Básico -->
+  <title>Calculadora Maia | Conversor de Calendarios Tzolkin y Haab</title>
+  <meta name="description" content="Herramienta didáctica interactiva para convertir fechas gregorianas a los sistemas de tiempo Maia Tzolkin y Haab mediante correlación astronómica GMT.">
+  <link rel="canonical" href="https://tu-usuario.github.io/calculadora-maia/">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Calculadora Maia: Tecnología y Saberes Ancestrales">
+  <meta property="og:description" content="Convierte fechas contemporáneas al sistema de contagem del tiempo Maia con algoritmos de correlación GMT.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tu-usuario.github.io/calculadora-maia/">
+
+  <!-- Hojas de estilo -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Datos Estructurados JSON-LD (E-E-A-T de Google) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Calculadora Maia",
+    "url": "https://tu-usuario.github.io/calculadora-maia/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "All",
+    "abstract": "Sistema didáctico de conversión entre el calendario gregoriano y los calendarios Tzolkin y Haab de la civilización Maia.",
+    "author": {
+      "@type": "EducationalOrganization",
+      "name": "Proyecto Calculadora Maia - CEFET/RJ"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Encabezado y Navegación Semántica -->
+  <header class="header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">🪶 Calculadora Maia</a>
+      <nav aria-label="Navegación principal">
+        <ul class="nav-links">
+          <li><a href="index.html" class="active">Inicio</a></li>
+          <li><a href="cosmoverso.html">Horóscopo</a></li>
+          <li><a href="sobre-nosotros.html">Metodología</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sección Principal / Conversor -->
+  <main class="container">
+    <section class="hero-section">
+      <h1>Calculadora Maia</h1>
+      <p class="subtitle">Integração entre Tecnologia Contemporânea e Saberes Ancestrais</p>
+      
+      <!-- Interfaz Interactiva de Conversión -->
+      <div class="calculator-card">
+        <h2>Ingresa una fecha gregoriana</h2>
+        <form id="maya-form" class="calculator-form">
+          <div class="input-group">
+            <label for="gregorian-date">Fecha a convertir:</label>
+            <input type="date" id="gregorian-date" required>
+          </div>
+          <button type="submit" class="btn-primary">Calcular Fecha Maia</button>
+        </form>
+
+        <!-- Resultados de la Conversión -->
+        <div id="results" class="results-container hidden">
+          <div class="result-box">
+            <h3>Calendario Tzolkin</h3>
+            <p class="result-label">Ritual / Sagrado (260 días)</p>
+            <div id="tzolkin-output" class="glyph-display">---</div>
+          </div>
+          <div class="result-box">
+            <h3>Calendario Haab</h3>
+            <p class="result-label">Civil / Solar (365 días)</p>
+            <div id="haab-output" class="glyph-display">---</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explicación de los Sistemas -->
+    <section class="info-section">
+      <article class="info-card">
+        <h2>Calendario Tzolkin</h2>
+        <p>Cuenta sagrada de <strong>260 días</strong> dividida en 20 períodos de 13 días. Era utilizado principalmente para la marcación de festividades religiosas y eventos astronómicos rituales.</p>
+      </article>
+
+      <article class="info-card">
+        <h2>Calendario Haab</h2>
+        <p>Calendario solar civil de <strong>365 días</strong>, estructurado en 18 meses de 20 días más un mes especial de 5 días denominado <em>Wayeb'</em>. Sus días se contabilizan del 0 al 19.</p>
+      </article>
+    </section>
+  </main>
+
+  <!-- Pie de página de confianza -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 Calculadora Maia. Divulgación científica y tecnológica.</p>
+      <nav aria-label="Enlaces legales">
+        <a href="politica-privacidad.html">Política de Privacidad</a> | 
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

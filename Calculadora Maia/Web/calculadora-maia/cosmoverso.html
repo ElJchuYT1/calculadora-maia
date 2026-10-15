@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Básico y E-E-A-T -->
+  <title>Cosmoverso Maia | Lectura de Kin, Nahual, Tonos y Rueda Calendárica</title>
+  <meta name="description" content="Análisis profundo de la energía personal en el Tzolk'in: augurios, perfil de personalidad, ciclo agrícola del maíz y fecha del Retorno Maya de 52 años.">
+  <link rel="canonical" href="https://tu-usuario.github.io/calculadora-maia/cosmoverso.html">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Cosmoverso Maia: Lectura de Kin y Ciclos de Vida">
+  <meta property="og:description" content="Mapea tu Kin de nacimiento con las 5 funciones tradicionales del Tzolk'in y descubre tu posición en la Rueda Calendárica.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tu-usuario.github.io/calculadora-maia/cosmoverso.html">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Datos Estructurados JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Cosmoverso Maia",
+    "url": "https://tu-usuario.github.io/calculadora-maia/cosmoverso.html",
+    "applicationCategory": "EducationalApplication",
+    "description": "Herramienta de interpretación del Kin personal, perfil de personalidad maya, ciclo de gestación y Rueda Calendárica."
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Encabezado con Navegación Actualizada -->
+  <header class="header">
+    <nav class="container nav-container" aria-label="Navegación principal">
+      <a href="index.html" class="logo">🪶 Calculadora Maia</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Conversor</a></li>
+        <li><a href="cosmoverso.html" class="active">Horóscopo</a></li>
+        <li><a href="sobre-nosotros.html">Metodología</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="container">
+    <section class="hero-section">
+      <h1>Cosmoverso Maia</h1>
+      <p class="subtitle">Descubre tus 5 dimensiones energéticas a través del Tzolk'in y la Rueda Calendárica</p>
+      
+      <!-- Panel de Selección Doble (Por Fecha o Por Selección Directa de Kin) -->
+      <article class="calculator-card">
+        <h2>Entrada de Datos</h2>
+        
+        <form id="cosmo-form" class="calculator-form">
+          <fieldset class="input-fieldset">
+            <legend>Modo de Consulta</legend>
+            <label class="radio-label">
+              <input type="radio" name="input_mode" value="date" checked id="mode-date">
+              Fecha de Nacimiento
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="input_mode" value="direct" id="mode-direct">
+              Sello / Tono
+            </label>
+          </fieldset>
+
+          <!-- Bloque A: Fecha de Nacimiento -->
+          <fieldset id="block-date" class="input-fieldset">
+            <label for="birth-date">Selecciona tu fecha de nacimiento:</label>
+            <input type="date" id="birth-date">
+          </fieldset>
+
+          <!-- Bloque B: Selección Directa de Tono y Sello -->
+          <fieldset id="block-direct" class="input-fieldset hidden">
+            <div class="input-group">
+              <label for="select-tono">Tono Numeral (1 - 13):</label>
+              <select id="select-tono">
+                <!-- Generado por JS -->
+              </select>
+            </div>
+            
+            <div class="input-group" style="margin-top: 15px;">
+              <label for="select-sello">Sello / Nahual (1 - 20):</label>
+              <select id="select-sello">
+                <!-- Generado por JS -->
+              </select>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="btn-primary" style="margin-top: 20px;">Revelar Cosmoverso</button>
+        </form>
+      </article>
+    </section>
+
+    <!-- Alertas de Fechas Sagradas / Ceremoniales (Función 3) -->
+    <aside id="ceremonial-alert" class="alert-box hidden" aria-live="polite">
+      <!-- Inyectado por JS si el Kin coincide con un día sagrado -->
+    </aside>
+
+    <!-- Resultados en Formato Modular / 5 Funciones Tradicionales -->
+    <section id="cosmo-results" class="results-grid hidden">
+
+      <!-- Coordenada Principal / Banner de Kin -->
+      <article class="info-card full-width-card highlight-card">
+        <h2>Tu Coordenada Sagrada</h2>
+        <p class="kin-badge" id="res-kin-title">Kin ---</p>
+        <p class="wheel-coordinate" id="res-wheel-coord">---</p>
+      </article>
+
+      <!-- Función 1: Adivinación y Augurios -->
+      <article class="info-card">
+        <h3>1. Adivinación y Augurios (Afinidad del Día)</h3>
+        <p><strong>Naturaleza del Día:</strong> <span id="f1-naturaleza">---</span></p>
+        <p style="margin-top: 10px;"><strong>Acción Recomendada:</strong> <span id="f1-accion">---</span></p>
+        <p style="margin-top: 10px; color: #b22222;"><strong>Evitar en este Día:</strong> <span id="f1-evitar">---</span></p>
+      </article>
+
+      <!-- Función 2: Asignación de Nombres y Destino -->
+      <article class="info-card">
+        <h3>2. Perfil de Personalidad y Destino</h3>
+        <p><strong>Esencia (Sello <span id="f2-sello-nombre"></span>):</strong></p>
+        <p id="f2-sello-desc" class="desc-text">---</p>
+        <br>
+        <p><strong>Misión de Vida (Tono <span id="f2-tono-num"></span> - <span id="f2-tono-nombre"></span>):</strong></p>
+        <p id="f2-tono-desc" class="desc-text">---</p>
+      </article>
+
+      <!-- Función 4: Orientación Agrícola y Biológica -->
+      <article class="info-card">
+        <h3>4. Ciclo Biológico y Metáfora del Maíz</h3>
+        <p><strong>Fecha Estimada de Concepción:</strong></p>
+        <p id="f4-concepcion" class="highlight-text">---</p>
+        <p class="small-note">Calculada a partir de los 260 días de gestación en sincronía con el Tzolk'in.</p>
+        <br>
+        <p><strong>Etapa del Maíz:</strong> <span id="f4-etapa-nombre" class="badge-tag">---</span></p>
+        <p id="f4-etapa-desc" class="desc-text">---</p>
+      </article>
+
+      <!-- Función 5: La Rueda Calendárica (52 Años) -->
+      <article class="info-card">
+        <h3>5. Rueda Calendárica y Retorno Maya</h3>
+        <p><strong>Tu Coordenada Exacta:</strong></p>
+        <p id="f5-coordenada" class="highlight-text">---</p>
+        <br>
+        <p><strong>Segundo Nacimiento Maya (52 Años):</strong></p>
+        <p id="f5-retorno-fecha">---</p>
+        <p id="f5-retorno-status" class="desc-text">---</p>
+      </article>
+
+    </section>
+  </main>
+
+  <!-- Pie de página -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 Calculadora Maia. Divulgación científica y tecnológica.</p>
+      <nav aria-label="Enlaces legales">
+        <a href="politica-privacidad.html">Política de Privacidad</a> | 
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="js/cosmoverso.js"></script>
+</body>
+</html>
